@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple II Web Emulator</title>
+    <meta name="description" content="Authentic Apple II web emulator with 6502 CPU, Disk II, Applesoft BASIC, and CRT shaders, ready for GitHub Pages.">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍎</text></svg>">
+</head>
+<body>
+
+    <header>
+        <div class="brand-badge">
+            <span class="apple-logo"></span>
+            <span class="brand-title">Apple <span>][</span>+ Web Emulator</span>
+        </div>
+    </header>
+
+    <main class="apple2-case">
+        <!-- Workstation: Monitor + Disk Drives -->
+        <section class="workstation-top">
+            <!-- CRT Monitor -->
+            <div class="monitor-frame" id="monitor-frame">
+                <div class="monitor-header">
+                    <span>Monitor ///</span>
+                    <span>40-Col / 280x192 NTSC</span>
+                </div>
+                <div class="screen-container">
+                    <canvas id="screen" width="560" height="384"></canvas>
+                    <div class="screen-glare"></div>
+                </div>
+            </div>
+
+            <!-- Disk II Dual Drive Bay -->
+            <aside class="drive-bay">
+                <!-- Drive 1 -->
+                <div class="drive-unit" id="drive-unit-1">
+                    <div class="drive-header">
+                        <span class="drive-label">DISK II - DRIVE 1</span>
+                        <div class="drive-status">
+                            <span class="drive-led" id="drive1-led"></span>
+                            <span>IN USE</span>
+                        </div>
+                    </div>
+                    <div class="drive-slot" id="drive1-info">
+                        [Trk 00] DOS 3.3 System Master
+                    </div>
+                    <div class="drive-controls">
+                        <select id="drive1-select" title="Choose Built-in Disk"></select>
+                        <label class="drive-file-btn">
+                            📁 Open .DSK
+                            <input type="file" id="drive1-file" accept=".dsk,.do,.po" style="display:none">
+                        </label>
+                        <button id="drive1-eject" title="Eject Disk">⏏ Eject</button>
+                        <button id="drive1-save" title="Export / Download Disk">💾 Save</button>
+                    </div>
+                </div>
+
+                <!-- Drive 2 -->
+                <div class="drive-unit" id="drive-unit-2">
+                    <div class="drive-header">
+                        <span class="drive-label">DISK II - DRIVE 2</span>
+                        <div class="drive-status">
+                            <span class="drive-led" id="drive2-led"></span>
+                            <span>IN USE</span>
+                        </div>
+                    </div>
+                    <div class="drive-slot" id="drive2-info">
+                        (No Disk)
+                    </div>
+                    <div class="drive-controls">
+                        <select id="drive2-select" title="Choose Built-in Disk"></select>
+                        <label class="drive-file-btn">
+                            📁 Open .DSK
+                            <input type="file" id="drive2-file" accept=".dsk,.do,.po" style="display:none">
+                        </label>
+                        <button id="drive2-eject" title="Eject Disk">⏏ Eject</button>
+                        <button id="drive2-save" title="Export / Download Disk">💾 Save</button>
+                    </div>
+                </div>
+            </aside>
+        </section>
+
+        <!-- Master Control Toolbar -->
+        <section class="control-toolbar">
+            <div class="toolbar-group">
+                <button class="retro-btn" id="btn-play"><span class="icon">⏸</span> Pause</button>
+                <button class="retro-btn danger" id="btn-reset" title="CPU Reset"><span class="icon">🔄</span> Reset</button>
+                <button class="retro-btn" id="btn-power" title="Power Cycle Reboot"><span class="icon">⏻</span> Reboot</button>
+            </div>
+
+            <div class="toolbar-group">
+                <label class="toolbar-label">
+                    Speed:
+                    <select class="toolbar-select" id="select-speed">
+                        <option value="1">1.02 MHz (1x)</option>
+                        <option value="2">2.0 MHz (2x)</option>
+                        <option value="4">4.0 MHz (4x)</option>
+                        <option value="8">Fast (8x)</option>
+                    </select>
+                </label>
+
+                <label class="toolbar-label">
+                    Display:
+                    <select class="toolbar-select" id="select-color">
+                        <option value="color">Color Composite</option>
+                        <option value="green">Green Phosphor</option>
+                        <option value="amber">Amber CRT</option>
+                        <option value="bw">B&amp;W Monochrome</option>
+                    </select>
+                </label>
+
+                <label class="toolbar-label">
+                    <input type="checkbox" id="check-scanlines" checked> Scanlines
+                </label>
+            </div>
+
+            <div class="toolbar-group">
+                <button class="retro-btn active" id="btn-audio"><span class="icon">🔊</span> Sound On</button>
+                <input type="range" class="toolbar-slider" id="volume-slider" min="0" max="1" step="0.05" value="0.5" title="Volume">
+                <button class="retro-btn" id="btn-paste" title="Paste Applesoft BASIC text"><span class="icon">📋</span> Paste</button>
+                <button class="retro-btn" id="btn-debug" title="Toggle 6502 Debugger"><span class="icon">⚙</span> Debug</button>
+                <button class="retro-btn" id="btn-fullscreen" title="Fullscreen Monitor"><span class="icon">⛶</span></button>
+            </div>
+        </section>
+
+        <!-- Virtual Keyboard Section -->
+        <section class="keyboard-section" id="virtual-keyboard"></section>
+
+        <!-- Debugger Panel (Hidden by default) -->
+        <section class="debug-panel hidden" id="debug-panel">
+            <div class="debug-header">
+                <strong>MOS 6502 Machine Inspector &amp; Disassembler</strong>
+                <div>
+                    <button class="retro-btn" id="dbg-btn-step">Step (F10)</button>
+                    <button class="retro-btn" id="dbg-btn-go">Continue</button>
+                </div>
+            </div>
+
+            <div class="debug-grid">
+                <!-- CPU Registers -->
+                <div class="dbg-box">
+                    <div class="dbg-title">CPU Registers &amp; Flags</div>
+                    <div id="dbg-regs"></div>
+                </div>
+
+                <!-- Disassembler -->
+                <div class="dbg-box">
+                    <div class="dbg-title">Disassembly</div>
+                    <div id="dbg-disasm"></div>
+                    <div style="margin-top: 0.6rem; display: flex; gap: 0.3rem;">
+                        <input type="text" id="dbg-input-bp" placeholder="Hex BP (e.g. C600)" style="width: 130px; font-family: monospace; padding: 2px 4px; background: #222; color: #fff; border: 1px solid #444;">
+                        <button class="retro-btn" id="dbg-btn-addbp">Add BP</button>
+                        <button class="retro-btn" id="dbg-btn-clearbp">Clear All</button>
+                    </div>
+                </div>
+
+                <!-- Memory Zero Page / Stack -->
+                <div class="dbg-box" style="grid-column: 1 / -1;">
+                    <div class="dbg-title">Zero Page &amp; Stack Hex Dump ($0000 - $007F)</div>
+                    <div id="dbg-mem"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Paste BASIC Text Modal -->
+    <div class="modal-overlay hidden" id="paste-modal">
+        <div class="modal-card">
+            <h3>Paste Applesoft BASIC Code</h3>
+            <p style="font-size: 0.8rem; color: #bbb; margin-bottom: 0.6rem;">
+                Type or paste BASIC commands or listings below. They will be typed directly into the Apple II prompt:
+            </p>
+            <textarea id="paste-textarea" placeholder='10 PRINT "HELLO APPLE II!"&#10;20 GOTO 10&#10;RUN'></textarea>
+            <div class="modal-actions">
+                <button class="retro-btn" id="btn-close-paste">Cancel</button>
+                <button class="retro-btn active" id="btn-submit-paste">Type Into Apple II</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Module Entry Point -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
