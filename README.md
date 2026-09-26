@@ -67,25 +67,7 @@
 
 ---
 
-## 🚀 Быстрый старт на GitHub Pages
 
-Репозиторий готов к развертыванию на GitHub Pages без каких-либо дополнительных шагов сборки:
-
-1. Запушьте код в ветку `main`:
-   ```bash
-   git add .
-   git commit -m "Apple II web emulator initial release"
-   git push origin main
-   ```
-2. Откройте репозиторий на GitHub: `https://github.com/japNslow/AppleII-webemu`.
-3. Перейдите в **Settings** -> **Pages**.
-4. В разделе **Build and deployment**:
-   - **Source**: `Deploy from a branch`
-   - **Branch**: `main`, папка `/ (root)`
-5. Нажмите **Save**. Через 1-2 минуты ваш эмулятор будет доступен по адресу:
-   `https://japNslow.github.io/AppleII-webemu/`
-
----
 
 ## 💻 Локальный запуск
 
